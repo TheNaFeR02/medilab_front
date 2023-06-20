@@ -41,6 +41,9 @@ function App() {
         <Route path="/" element={<ECommerce />} />
         <Route path="/recepcion" element={<Reception />} />
         <Route path="/recepcion/nueva" element={<CreateReception />} />
+        <Route path="/iniciar_sesion" element={<SignIn />} />
+        <Route path="/registrarse" element={<SignUp />} />
+        
         {/* <Route path="/profile" element={<Profile />} />
         <Route path="/forms/form-elements" element={<FormElements />} />
         <Route path="/forms/form-layout" element={<FormLayout />} />
