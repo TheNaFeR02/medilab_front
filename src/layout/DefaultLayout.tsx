@@ -1,7 +1,8 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useContext, useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
+import { AuthContext } from '../pages/Authentication/AuthProvider';
 
 interface DefaultLayoutProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ interface DefaultLayoutProps {
 
 const DefaultLayout = ({ children, pageName, newReception }: DefaultLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const authContext = useContext(AuthContext);
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">
@@ -34,6 +36,7 @@ const DefaultLayout = ({ children, pageName, newReception }: DefaultLayoutProps)
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+              <p>{authContext.currentUser?.role}</p>
               {children}
             </div>
           </main>

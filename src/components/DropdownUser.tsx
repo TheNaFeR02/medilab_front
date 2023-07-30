@@ -1,13 +1,51 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import UserOne from '../images/user/user-01.png';
+// import { useAuth } from '../pages/Authentication/AuthProvider';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  // const { isAuthenticated, setIsAuthenticated, userRole, roles, loading } = useAuth();
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
+
+  // Fetch CSRF token from the cookie
+
+
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+
+    try {
+      let csrftoken = '';
+      const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken'));
+      if (csrfCookie) {
+        csrftoken = csrfCookie.split('=')[1];
+      } else {
+        throw new Error('CSRF token not found');
+      }
+      const response = await fetch('http://localhost:8000/auth/dj-rest-auth/logout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        credentials: 'include', // include cookies with the request
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      } else {
+        // setIsAuthenticated(false);
+        console.log("Logout successful");
+        // delete the auth_token 
+        document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; HttpOnly; SameSite=Strict Secure';
+        navigate('/iniciar_sesion'); // redirect to the login page or home page
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  };
 
   // close on click outside
   useEffect(() => {
@@ -55,9 +93,8 @@ const DropdownUser = () => {
         </span>
 
         <svg
-          className={`hidden fill-current sm:block ${
-            dropdownOpen ? 'rotate-180' : ''
-          }`}
+          className={`hidden fill-current sm:block ${dropdownOpen ? 'rotate-180' : ''
+            }`}
           width="12"
           height="8"
           viewBox="0 0 12 8"
@@ -78,9 +115,8 @@ const DropdownUser = () => {
         ref={dropdown}
         onFocus={() => setDropdownOpen(true)}
         onBlur={() => setDropdownOpen(false)}
-        className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${
-          dropdownOpen === true ? 'block' : 'hidden'
-        }`}
+        className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${dropdownOpen === true ? 'block' : 'hidden'
+          }`}
       >
         <ul className="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark">
           <li>
@@ -155,7 +191,7 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 py-4 px-6 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+        <button onClick={handleLogout} className="flex items-center gap-3.5 py-4 px-6 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
           <svg
             className="fill-current"
             width="22"
