@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import UserOne from '../images/user/user-01.png';
+import { AuthContext } from '../pages/Authentication/AuthProvider';
 // import { useAuth } from '../pages/Authentication/AuthProvider';
 
 const DropdownUser = () => {
@@ -9,13 +10,13 @@ const DropdownUser = () => {
   // const { isAuthenticated, setIsAuthenticated, userRole, roles, loading } = useAuth();
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
+  const authContext = useContext(AuthContext);
 
   // Fetch CSRF token from the cookie
 
 
   const navigate = useNavigate();
   const handleLogout = async () => {
-
     try {
       let csrftoken = '';
       const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken'));
@@ -24,7 +25,7 @@ const DropdownUser = () => {
       } else {
         throw new Error('CSRF token not found');
       }
-      const response = await fetch('http://localhost:8000/auth/dj-rest-auth/logout/', {
+      const response = await fetch('http://127.0.0.1:8000/auth/dj-rest-auth/logout/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,6 +41,7 @@ const DropdownUser = () => {
         console.log("Logout successful");
         // delete the auth_token 
         document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; HttpOnly; SameSite=Strict Secure';
+        authContext.signout();
         navigate('/iniciar_sesion'); // redirect to the login page or home page
       }
     } catch (error) {

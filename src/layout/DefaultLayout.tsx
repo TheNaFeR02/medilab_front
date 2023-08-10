@@ -1,4 +1,4 @@
-import { ReactNode, useContext, useState } from 'react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
@@ -6,14 +6,20 @@ import { AuthContext } from '../pages/Authentication/AuthProvider';
 
 interface DefaultLayoutProps {
   children: ReactNode;
-  pageName: string;
+  // pageName: string;
   newReception?: string;
-  
+
 }
 
-const DefaultLayout = ({ children, pageName, newReception }: DefaultLayoutProps) => {
+const DefaultLayout = ({ children, newReception }: DefaultLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const authContext = useContext(AuthContext);
+  const [pageName, setPageName] = useState<string>('');
+
+  useEffect(() => {
+    const userRole = authContext.currentUser?.role;
+    if (userRole!== undefined) setPageName(userRole);
+  }, []);
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">
@@ -30,13 +36,12 @@ const DefaultLayout = ({ children, pageName, newReception }: DefaultLayoutProps)
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Page Header Start ===== --> */}
-          <PageHeader Pagename={pageName} newElement={newReception}/>
+          <PageHeader Pagename={pageName} newElement={newReception} />
           {/* <!-- ===== Page Header  End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-              <p>{authContext.currentUser?.role}</p>
               {children}
             </div>
           </main>

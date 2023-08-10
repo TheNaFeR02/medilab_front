@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { AuthContext } from './AuthProvider';
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
@@ -12,14 +12,17 @@ const Auth = ({ allowedRoles }: AuthProps) => {
 
   useEffect(() => {
     console.log('Entró a Auth');
-  }, []);
+  });
 
-  const userHasRole = allowedRoles.some((role: string) => authContext.currentUser?.role.includes(role));
-
-  console.log('isauthenticated', authContext.isAuthenticated);
-  console.log('userhasrole', userHasRole);
-  console.log(typeof authContext.currentUser?.role);
-
+  // By using useMemo we are ensuring that the finding in the array roles 
+  // only happens when any of the two changes and not every time this component re-renders.
+  const userHasRole = useMemo(() => 
+    allowedRoles.some((role: string) => authContext.currentUser?.role.includes(role)), 
+    [allowedRoles, authContext.currentUser]
+  );
+  // const userHasRole = allowedRoles.some((role: string) => authContext.currentUser?.role.includes(role));
+  // console.log('isauthenticated', authContext.isAuthenticated);
+  // console.log('userhasrole', userHasRole);
 
   if (!authContext.isAuthenticated || !userHasRole) {
     return <Navigate to="/iniciar_sesion" state={{ from: location }} replace />;

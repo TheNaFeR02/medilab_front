@@ -2,10 +2,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import LogoDark from '../../images/logo/logo-dark.svg';
 import Logo from '../../images/logo/logo.svg';
 import { useState, useEffect, useContext } from 'react';
-import ProtectedRoute from './ProtectedRoute';
-import DefaultLayout from '../../layout/DefaultLayout';
 import { AuthContext } from './AuthProvider';
-// import { useAuth } from './AuthProvider';
 
 function getCookie(name: string) {
   const cookie = document.cookie.split('; ').find(row => row.startsWith(name));
@@ -14,12 +11,11 @@ function getCookie(name: string) {
 
 const SignIn = () => {
   const [formData, setFormData] = useState<{ [key: string]: string }>({});
-  const navigate = useNavigate();
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
-  // const authContext = useContext(AuthContext);
   const [succesfullLogin, setSuccesfullLogin] = useState<boolean>(false);
   const authContext = useContext(AuthContext);
-  // const { isAuthenticated, setIsAuthenticated, userRole, roles, loading } = useAuth();
+  const navigate = useNavigate();
+  
 
   // Fetch CSRF token the first time the component is rendered.
   useEffect(() => {
@@ -62,14 +58,6 @@ const SignIn = () => {
       });
 
       const data = await response.json(); // TOKEN
-      // const role = data.role; // ROLE
-
-
-      // console.log('ROLE', role);
-
-
-
-      // -------
 
       try {
         const response = await fetch('http://127.0.0.1:8000/auth/revalidate-user/', {
@@ -82,33 +70,19 @@ const SignIn = () => {
         });
         if (response.ok) {
           const user = await response.json();
-          console.log('PR: user ->', user);
-
-          console.log('Before auth', authContext);
+          console.log(user);
           authContext.authenticate(user);
-          console.log('After auth', authContext);
+          console.log( authContext);
         }
       } catch (err) {
         console.error(err);
         authContext.signout();
       }
-
-      // ---------------
-
-      setSuccesfullLogin(true); // This sends to ProtectedRoute or Auth
-
-
-      // if (role === 'Company') {
-      //   // Redirect to Company Dashboard
-      //   // navigate("/empresa/inicio"); <----
-
-
-
-      //   // setIsAuthenticated(true);
-      // }
+      setSuccesfullLogin(true); // Auth
     } catch (error) {
       console.error("An error occurred:", error);
-      // setIsAuthenticated(false);
+      authContext.signout();
+      navigate('/iniciar_sesion');
     }
   };
 
@@ -127,31 +101,7 @@ const SignIn = () => {
         succesfullLogin === true
           ?
           (
-            authContext.currentUser?.role === "Company"
-            ?
-            <Navigate to="/empresa/inicio" replace />
-            :
-            authContext.currentUser?.role === "Patient"
-            ?
-            <Navigate to="/paciente/inicio" replace />
-            :
-            authContext.currentUser?.role === "Doctor"
-            ?
-            <Navigate to="/doctor/inicio" replace />
-            :
-            authContext.currentUser?.role === "Bacteriologist"
-            ?
-            <Navigate to="/bacteriologo/inicio" replace />
-            :
-            authContext.currentUser?.role === "Receptionist"
-            ?
-            <Navigate to="/recepcionista/inicio" replace />
-            :
-            authContext.currentUser?.role === "Brigade"
-            ?
-            <Navigate to="/brigadista/inicio" replace />
-            :
-            <SignIn />
+            <Navigate to="/inicio" replace />
           )
             :
             <div className='flex justify-center items-center h-screen '>
