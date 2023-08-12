@@ -7,6 +7,10 @@ import departamentos_ciudades from "../../pages/Receptions/JSON/departamentos_ci
 import eps_list from "../../pages/Receptions/JSON/EPS.json";
 import pension_fund from "../../pages/Receptions/JSON/pension_fund.json";
 import arl from "../../pages/Receptions/JSON/arl.json";
+import SignatureCanvas from 'react-signature-canvas';
+import {IoCamera} from 'react-icons/io5';
+import {MdOutlineCamera} from 'react-icons/md';
+import {PiSignatureBold} from 'react-icons/pi';
 
 
 
@@ -58,6 +62,8 @@ const CreateReception = () => {
     const [image, setImage] = useState<string | null>(null);
 
 
+    const sigCanvasRef = useRef<SignatureCanvas | null>(null);
+    const [signature, setSignature] = useState<string | undefined>(undefined);
 
 
 
@@ -100,7 +106,14 @@ const CreateReception = () => {
     };
 
 
-
+    const saveSignature = () => {
+        if (sigCanvasRef.current?.isEmpty()){
+            alert('Firma vacía. Por favor, firma antes de guardar.');
+        } else {
+            const signatureData = sigCanvasRef.current?.toDataURL();
+            setSignature(signatureData);
+        }
+    };
 
 
 
@@ -135,7 +148,7 @@ const CreateReception = () => {
                                 href="#"
                                 aria-current={activeTab === 'patient' ? 'page' : undefined}
                             >
-                                <svg aria-hidden="true" className="w-5 h-5 mr-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path></svg>Información del Paciente
+                                <svg aria-hidden="true" className="w-5 h-5 mr-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd"></path></svg>Información del Paciente
                             </a>
                         </li>
                         <li className="mr-2">
@@ -153,7 +166,7 @@ const CreateReception = () => {
                                 className={`inline-flex p-4 border-b-2 hover:text-graydark hover:border-graydark dark:hover:border-white dark:hover:text-white group rounded-t-lg ${activeTab === 'exams' ? 'text-graydark border-graydark dark:text-white dark:border-white' : 'border-transparent'}`}
                                 aria-current={activeTab === 'exams' ? 'page' : undefined}
                             >
-                                <svg aria-hidden="true" className="w-5 h-5 mr-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>Exámenes
+                                <svg aria-hidden="true" className="w-5 h-5 mr-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path></svg>Exámenes
                             </a>
                         </li>
                     </ul>
@@ -177,7 +190,7 @@ const CreateReception = () => {
                             <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
 
 
-                                <div className="mt-4 photo-patient border-dashed border-x border-y w-50 h-50 ">
+                                <div className="mt-4 border-dashed border-2  w-50 h-50 ">
 
                                     <div className="picture flex justify-center items-center w-full h-full">
                                         {/* <div className="relative z-1 upload-file border-solid border-x border-y h-3 w-3"></div> */}
@@ -186,8 +199,8 @@ const CreateReception = () => {
                                     </div>
 
                                     <div className="camera-options inline-flex">
-                                        <div onClick={startCamera} className="start-camera border-x border-y w-10 h-10 "></div>
-                                        <div onClick={capturePhoto} className="capture-photo border-x border-y w-10 h-10 "></div>
+                                        <div onClick={startCamera} className="start-camera pt-3  w-10 h-10 flex justify-center items-center"><IoCamera className="text-4xl"/></div>
+                                        <div onClick={capturePhoto} className="capture-photo pt-3 w-10 h-10 flex justify-center items-center"><MdOutlineCamera className="text-3xl"/></div>
                                     </div>
 
 
@@ -195,8 +208,14 @@ const CreateReception = () => {
                                 </div>
 
                                 <div className="signature self-end ">
-                                    <div className="border-x border-y w-50 h-22">
-
+                                    <div className="border-x border-y border-dotted  w-50 h-22">
+                                        <SignatureCanvas
+                                            ref={sigCanvasRef}
+                                            canvasProps={{ className: 'signature-canvas w-full h-full' }}
+                                        />
+                                    </div>
+                                    <div className="absolute signature-options inline-flex">
+                                        <div onClick={saveSignature} className="start-signature pt-3 w-10 h-10 flex justify-center items-center"><PiSignatureBold className="text-4xl"/></div>
                                     </div>
                                 </div>
 
@@ -243,7 +262,7 @@ const CreateReception = () => {
                                                 documentType === '' ? 'Tipo de Documento' : documentType
                                             }
 
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
                                         {/* <!-- Dropdown menu --> */}
                                         <div className="absolute">
                                             <div id="dropdown" className={` ${documentTypeDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
@@ -291,7 +310,7 @@ const CreateReception = () => {
                                                 sex === '' ? 'No Identificado' : sex
                                             }
 
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
                                         {/* <!-- Dropdown menu Genéro --> */}
                                         <div className="absolute">
                                             <div id="dropdown" className={` ${sexDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
@@ -429,7 +448,7 @@ const CreateReception = () => {
                                         >
                                             {estrato === '' ? 'No Identificado' : estrato}
                                             <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                                             </svg>
                                         </button>
                                         {/* Dropdown menu Estrato */}
@@ -467,7 +486,7 @@ const CreateReception = () => {
                                         >
                                             {zona === '' ? 'No Identificado' : zona}
                                             <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                                             </svg>
                                         </button>
                                         {/* Dropdown menu Zona */}
@@ -564,7 +583,7 @@ const CreateReception = () => {
                                                 maritalStatus === '' ? 'Estado Civil' : maritalStatus
                                             }
 
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
                                         {/* <!-- Dropdown menu --> */}
                                         <div className="absolute">
                                             <div id="dropdown" className={` ${maritalStatusDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
@@ -601,7 +620,7 @@ const CreateReception = () => {
                                                 bloodGroup === '' ? 'Grupo Sanguíneo' : bloodGroup
                                             }
 
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
                                         {/* <!-- Dropdown menu --> */}
                                         <div className="absolute">
                                             <div id="dropdown" className={` ${bloodGroupDropdown === 'active' ? 'dark:bg-graydark z-20 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
@@ -789,7 +808,7 @@ const CreateReception = () => {
 
         </DefaultLayout>
     );
-
+                                            
 };
 
 export default CreateReception;
