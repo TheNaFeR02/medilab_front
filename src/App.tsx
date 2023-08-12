@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import SignIn from './pages/Authentication/SignIn';
-import SignUp from './pages/Authentication/SignUp';
+import SignIn from './pages/Authentication/Login/SignIn';
+import SignUp from './pages/Authentication/Login/SignUp';
 import Reception from './pages/Receptions/Reception';
 import CreateReception from './pages/Receptions/CreateReception';
 import DefaultLayout from './layout/DefaultLayout';
-import { AuthProvider } from './pages/Authentication/AuthProvider';
-import { Auth } from './pages/Authentication/Auth';
+import { AuthProvider } from './pages/Authentication/Login/AuthProvider';
+import { Auth } from './pages/Authentication/Login/Auth';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);

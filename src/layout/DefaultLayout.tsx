@@ -2,7 +2,7 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
-import { AuthContext } from '../pages/Authentication/AuthProvider';
+import { AuthContext } from '../pages/Authentication/Login/AuthProvider';
 
 interface DefaultLayoutProps {
   children: ReactNode;
@@ -11,14 +11,25 @@ interface DefaultLayoutProps {
 
 }
 
+interface User {
+  username: string;
+  role: string;
+  first_name: string;
+  last_name: string;
+}
+
 const DefaultLayout = ({ children, newReception }: DefaultLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const authContext = useContext(AuthContext);
   const [pageName, setPageName] = useState<string>('');
 
   useEffect(() => {
-    const userRole = authContext.currentUser?.role;
-    if (userRole!== undefined) setPageName(userRole);
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      const parsedUser: User = JSON.parse(savedUser);
+      const userRole = parsedUser?.role;
+      if (userRole !== undefined) setPageName(userRole);
+    }
   }, []);
 
   return (

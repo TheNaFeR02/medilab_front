@@ -1,6 +1,6 @@
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import LogoDark from '../../images/logo/logo-dark.svg';
-import Logo from '../../images/logo/logo.svg';
+import LogoDark from '../../../images/logo/logo-dark.svg';
+import Logo from '../../../images/logo/logo.svg';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './AuthProvider';
 
@@ -72,16 +72,16 @@ const SignIn = () => {
           const user = await response.json();
           console.log(user);
           authContext.authenticate(user);
-          console.log( authContext);
+          console.log(authContext);
         }
       } catch (err) {
         console.error(err);
-        authContext.signout();
+        // authContext.signout();
       }
       setSuccesfullLogin(true); // Auth
     } catch (error) {
       console.error("An error occurred:", error);
-      authContext.signout();
+      // authContext.signout();
       navigate('/iniciar_sesion');
     }
   };

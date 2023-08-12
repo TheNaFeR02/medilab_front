@@ -2,8 +2,11 @@ import { pink } from "@mui/material/colors";
 import Breadcrumb from "../../components/Breadcrumb";
 import DefaultLayout from "../../layout/DefaultLayout";
 import FormElements from "../Form/FormElements";
-import React, { useState, useEffect } from "react";
-import departamentos_ciudades from "../../js/departamentos_ciudades.json";
+import React, { useState, useEffect, useRef } from "react";
+import departamentos_ciudades from "../../pages/Receptions/JSON/departamentos_ciudades.json";
+import eps_list from "../../pages/Receptions/JSON/EPS.json";
+import pension_fund from "../../pages/Receptions/JSON/pension_fund.json";
+import arl from "../../pages/Receptions/JSON/arl.json";
 
 
 
@@ -37,6 +40,71 @@ const CreateReception = () => {
     const [escolaridad, setEscolaridad] = useState('');
     const [escolaridadDropdown, setEscolaridadDropdown] = useState(false);
 
+    const [medicalInsurance, setMedicalInsurance] = useState('');
+    const [isCustomMedicalIns, setIsCustomMedicalIns] = useState<boolean>(false);
+
+    const [pensionFund, setPensionFund] = useState<string>('');
+    const [isCustomPensionFund, setIsCustomPensionFund] = useState<boolean>(false);
+
+    const [ARL, setARL] = useState<string>('');
+    const [isCustomARL, setIsCustomARL] = useState<boolean>(false);
+
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    // const pictureRef = useRef<HTMLDivElement | null>(null);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+    const [showVideo, setShowVideo] = useState(false);
+    const [image, setImage] = useState<string | null>(null);
+
+
+
+
+
+    const startCamera = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+
+                setVideoStream(stream);  // Store the video stream
+            }
+            setImage(null); // Clear captured image (if any)
+            setShowVideo(true);
+        } catch (err) {
+            console.error("Error accessing the camera:", err);
+        }
+    };
+
+    const capturePhoto = () => {
+        if (videoRef.current && canvasRef.current) {
+            const context = canvasRef.current.getContext('2d');
+
+            // Set canvas dimensions to match video
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+
+            // Draw current frame of video on canvas
+            context?.drawImage(videoRef.current, 0, 0);
+
+            // Retrieve the image data from canvas as a Data URL
+            const dataURL = canvasRef.current.toDataURL('image/png');
+
+            // If you have an image element to show the captured photo, you can set its 'src' attribute to the dataURL
+            // imageRef.current.src = dataURL; 
+
+            // For now, I'll assume you'll store the captured photo data URL in a state variable called 'image'
+            setImage(dataURL); // setImage is a state setter, assuming you've useState for 'image'
+        }
+    };
+
+
+
+
+
+
+
     const escolaridadOptions = [
         'Analfabeta', 'Primaria', 'Secundaria', 'Secundaria incompleta',
         'Técnico', 'Tecnólogo', 'Pregrado', 'Especialista', 'Maestría', 'Doctorado'
@@ -53,8 +121,10 @@ const CreateReception = () => {
     }, [selectedDepartment]);
 
 
+
+
     return (
-        <DefaultLayout pageName={pageName}>
+        <DefaultLayout>
             <Breadcrumb pageName={pageName} />
 
             <div className="flex flex-col justify-center ">
@@ -105,7 +175,38 @@ const CreateReception = () => {
                         <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5">
                             <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Información de Identificación</legend>
                             <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
-                                <div>
+
+
+                                <div className="mt-4 photo-patient border-dashed border-x border-y w-50 h-50 ">
+
+                                    <div className="picture flex justify-center items-center w-full h-full">
+                                        {/* <div className="relative z-1 upload-file border-solid border-x border-y h-3 w-3"></div> */}
+                                        {image && <img src={image} alt="Captured" />}
+                                        {showVideo && !image && <video className="video" ref={videoRef} autoPlay></video>}
+                                    </div>
+
+                                    <div className="camera-options inline-flex">
+                                        <div onClick={startCamera} className="start-camera border-x border-y w-10 h-10 "></div>
+                                        <div onClick={capturePhoto} className="capture-photo border-x border-y w-10 h-10 "></div>
+                                    </div>
+
+
+                                    <canvas ref={canvasRef} className="hidden"></canvas> {/* This canvas can be hidden; it's just used to grab frames */}
+                                </div>
+
+                                <div className="signature self-end ">
+                                    <div className="border-x border-y w-50 h-22">
+
+                                    </div>
+                                </div>
+
+                                <div className="linebreak w-full"></div>
+
+
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="relative ">
                                     <label className="mb-3 block text-black dark:text-white">
                                         Nombres
                                     </label>
@@ -126,9 +227,12 @@ const CreateReception = () => {
                                     />
                                 </div>
 
+
+
                                 <div className="linebreak w-full"></div>
 
-                                <div className="h-21 ">
+
+                                <div className="h-21">
                                     <label className="mb-3 block text-black dark:text-white">
                                         Tipo de documento
                                     </label>
@@ -258,154 +362,13 @@ const CreateReception = () => {
                             </div>
                         </fieldset>
 
+
+
                         {/* <!-- Información del Paciente End --> */}
 
-                        <hr className="w-full pb-4 text-stroke border-opacity-60 dark:border-graydark" />
-
-                        {/* Origen y Residencia Start */}
-                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5">
-                            <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Origen y Residencia</legend>
-                            <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
-                                <div>
-                                    <label className="mb-3 block text-black dark:text-white">
-                                        Ocupación
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ocupación"
-                                        className="w-100 rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                                    />
-                                </div>
-
-                                <div className="h-21">
-                                    <label className="mb-3 block text-black dark:text-white">
-                                        Escolaridad
-                                    </label>
-                                    <div className="h-13">
-                                        <button
-                                            onClick={() => setEscolaridadDropdown(prev => !prev)}
-                                            id="dropdownEscolaridadButton"
-                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm text-center inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800"
-                                            type="button"
-                                        >
-                                            {escolaridad === '' ? 'Escolaridad' : escolaridad}
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </button>
-                                        {/* Dropdown menu Escolaridad */}
-                                        <div className="absolute">
-                                            <div id="dropdownEscolaridad" className={` ${escolaridadDropdown ? 'dark:bg-graydark z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownEscolaridadButton">
-                                                    {escolaridadOptions.map((option, index) => (
-                                                        <li key={index}>
-                                                            <a
-                                                                href="#"
-                                                                onClick={() => { setEscolaridadDropdown(false); setEscolaridad(option); }}
-                                                                className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}
-                                                            >
-                                                                {option}
-                                                            </a>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <div className="linebreak w-full"></div>
-
-                                <div className="h-21 z-20">
-                                    <label className="mb-3 block text-black dark:text-white">
-                                        Estado Civil
-                                    </label>
-                                    <div className="h-13">
-                                        <button onClick={() => maritalStatusDropdown === 'inactive' ? setMaritalStatusDropdown('active') : setMaritalStatusDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="w-100 border-solid border-[1.5px]  border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 dark:border-form-strokedark dark:bg-form-input" type="button">
-
-                                            {
-                                                maritalStatus === '' ? 'Estado Civil' : maritalStatus
-                                            }
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
-                                        {/* <!-- Dropdown menu --> */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${maritalStatusDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Soltero/a'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>Soltero/a</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Casado/a'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">Casado/a</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Divorciado/a'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Divorciado/a</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Unión Libre'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Unión Libre</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Viudo'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Viudo</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="h-21">
-                                    <label className="mb-3 block text-black dark:text-white">
-                                        Grupo Sanguíneo
-                                    </label>
-                                    <div className="h-13">
-                                        <button onClick={() => bloodGroupDropdown === 'inactive' ? setBloodGroupDropdown('active') : setBloodGroupDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className=" dark:border-form-strokedark w-100 border-solid border-[1.5px]  border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 " type="button">
-
-                                            {
-                                                bloodGroup === '' ? 'Grupo Sanguíneo' : bloodGroup
-                                            }
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
-                                        {/* <!-- Dropdown menu --> */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${bloodGroupDropdown === 'active' ? 'dark:bg-graydark z-20 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200 " aria-labelledby="dropdownDefaultButton">
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('A+'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>A+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('A-'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">A-</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('B+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">B+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('B-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">B-</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('AB+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">AB+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('AB-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">AB-</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('O+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">O+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('O-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">O-</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
-
-                        {/* Origen y Residencia End */}
 
                         <hr className="w-full pb-4 text-stroke border-opacity-60 dark:border-graydark" />
+
 
                         <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5">
                             <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Información de Residencia</legend>
@@ -530,6 +493,286 @@ const CreateReception = () => {
 
                             </div>
                         </fieldset >
+
+
+                        <hr className="w-full pb-4 text-stroke border-opacity-60 dark:border-graydark" />
+
+
+                        {/* información Personal Start */}
+                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5">
+                            <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Información Personal</legend>
+                            <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
+                                <div>
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Dependientes
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Número de personas a cargo"
+                                        className="w-100 rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                    />
+                                </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Escolaridad
+                                    </label>
+                                    <div className="h-13">
+                                        <button
+                                            onClick={() => setEscolaridadDropdown(prev => !prev)}
+                                            id="dropdownEscolaridadButton"
+                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm text-center inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800"
+                                            type="button"
+                                        >
+                                            {escolaridad === '' ? 'Escolaridad' : escolaridad}
+
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        {/* Dropdown menu Escolaridad */}
+                                        <div className="absolute">
+                                            <div id="dropdownEscolaridad" className={` ${escolaridadDropdown ? 'dark:bg-graydark z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
+                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownEscolaridadButton">
+                                                    {escolaridadOptions.map((option, index) => (
+                                                        <li key={index}>
+                                                            <a
+                                                                href="#"
+                                                                onClick={() => { setEscolaridadDropdown(false); setEscolaridad(option); }}
+                                                                className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}
+                                                            >
+                                                                {option}
+                                                            </a>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="h-21 z-20">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Estado Civil
+                                    </label>
+                                    <div className="h-13">
+                                        <button onClick={() => maritalStatusDropdown === 'inactive' ? setMaritalStatusDropdown('active') : setMaritalStatusDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="w-100 border-solid border-[1.5px]  border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 dark:border-form-strokedark dark:bg-form-input" type="button">
+
+                                            {
+                                                maritalStatus === '' ? 'Estado Civil' : maritalStatus
+                                            }
+
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                        {/* <!-- Dropdown menu --> */}
+                                        <div className="absolute">
+                                            <div id="dropdown" className={` ${maritalStatusDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
+                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                                                    <li>
+                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Soltero/a'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>Soltero/a</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Casado/a'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">Casado/a</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Divorciado/a'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Divorciado/a</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Unión Libre'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Unión Libre</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Viudo'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Viudo</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Grupo Sanguíneo
+                                    </label>
+                                    <div className="h-13">
+                                        <button onClick={() => bloodGroupDropdown === 'inactive' ? setBloodGroupDropdown('active') : setBloodGroupDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className=" dark:border-form-strokedark w-100 border-solid border-[1.5px]  border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 " type="button">
+
+                                            {
+                                                bloodGroup === '' ? 'Grupo Sanguíneo' : bloodGroup
+                                            }
+
+                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                        {/* <!-- Dropdown menu --> */}
+                                        <div className="absolute">
+                                            <div id="dropdown" className={` ${bloodGroupDropdown === 'active' ? 'dark:bg-graydark z-20 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
+                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200 " aria-labelledby="dropdownDefaultButton">
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('A+'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>A+</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('A-'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">A-</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('B+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">B+</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('B-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">B-</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('AB+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">AB+</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('AB-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">AB-</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('O+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">O+</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('O-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">O-</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        EPS
+                                    </label>
+                                    <div className="h-13">
+                                        {!isCustomMedicalIns ? (
+                                            <select
+                                                value={medicalInsurance}
+                                                onChange={(e) => {
+                                                    if (e.target.value === 'Otro (Escribir una nueva EPS)') {
+                                                        setIsCustomMedicalIns(true);
+                                                        setMedicalInsurance('');
+                                                    } else {
+                                                        setMedicalInsurance(e.target.value);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                            >
+                                                <option value="">Seleccione una EPS</option>
+                                                {
+                                                    eps_list.map((eps, index) => (
+                                                        <option key={index} value={eps.name}>{eps.name}</option>
+                                                    ))
+
+                                                }
+                                                {/* <option value=""></option> */}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                value={medicalInsurance}
+                                                onChange={(e) => setMedicalInsurance(e.target.value)}
+                                                onBlur={() => {
+                                                    if (medicalInsurance === '') {
+                                                        setIsCustomMedicalIns(false);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                                placeholder="Escriba su EPS"
+                                            />
+                                        )}
+
+                                    </div>
+                                </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Fondo de Pensiones
+                                    </label>
+                                    <div className="h-13">
+                                        {!isCustomPensionFund ? (
+                                            <select
+                                                value={pensionFund}
+                                                onChange={(e) => {
+                                                    if (e.target.value === 'Otro (Escribir uno nuevo)') {
+                                                        setIsCustomPensionFund(true);
+                                                        setPensionFund('');
+                                                    } else {
+                                                        setPensionFund(e.target.value);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                            >
+                                                <option value="">Seleccione un fondo de pensiones</option>
+                                                {
+                                                    pension_fund.map((pf, index) => (
+                                                        <option key={index} value={pf.name}>{pf.name}</option>
+                                                    ))
+
+                                                }
+                                            </select>
+                                        ) : (
+                                            <input
+                                                value={pensionFund}
+                                                onChange={(e) => setPensionFund(e.target.value)}
+                                                onBlur={() => {
+                                                    if (pensionFund === '') {
+                                                        setIsCustomPensionFund(false);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                                placeholder="Escriba su fondo de pensiones"
+                                            />
+                                        )}
+
+                                    </div>
+                                </div>
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        ARL (Riesgos Laborales)
+                                    </label>
+                                    <div className="h-13">
+                                        {!isCustomARL ? (
+                                            <select
+                                                value={ARL}
+                                                onChange={(e) => {
+                                                    if (e.target.value === 'Otro (Escribir uno nuevo)') {
+                                                        setIsCustomARL(true);
+                                                        setARL('');
+                                                    } else {
+                                                        setARL(e.target.value);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                            >
+                                                <option value="">Seleccione una ARL</option>
+                                                {
+                                                    arl.map((arl, index) => (
+                                                        <option key={index} value={arl.name}>{arl.name}</option>
+                                                    ))
+
+                                                }
+                                            </select>
+                                        ) : (
+                                            <input
+                                                value={ARL}
+                                                onChange={(e) => setARL(e.target.value)}
+                                                onBlur={() => {
+                                                    if (ARL === '') {
+                                                        setIsCustomARL(false);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                                placeholder="Escriba su ARL"
+                                            />
+                                        )}
+
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        {/* Información Personal End */}
+
 
 
 

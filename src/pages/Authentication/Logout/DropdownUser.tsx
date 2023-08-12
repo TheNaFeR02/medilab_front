@@ -1,9 +1,16 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import UserOne from '../images/user/user-01.png';
-import { AuthContext } from '../pages/Authentication/AuthProvider';
+import UserOne from '../../../images/user/user-01.png';
+import { AuthContext } from '../Login/AuthProvider';
 // import { useAuth } from '../pages/Authentication/AuthProvider';
+
+interface User {
+  username: string;
+  role: string;
+  first_name: string;
+  last_name: string;
+}
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -11,7 +18,8 @@ const DropdownUser = () => {
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
   const authContext = useContext(AuthContext);
-
+  const [userName, setUserName] = useState<string | undefined>('');
+  const [userRole, setUserRole] = useState<string | undefined>('');
   // Fetch CSRF token from the cookie
 
 
@@ -49,6 +57,27 @@ const DropdownUser = () => {
     }
   };
 
+  
+  useEffect(()=>{
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      const parsedUser: User = JSON.parse(savedUser);
+      const userRole = parsedUser?.role;
+      const firstName = parsedUser?.first_name;
+      const lastName = parsedUser?.last_name;
+
+      if (userRole!== undefined &&  firstName!== undefined && lastName!==undefined) {
+        const userName = firstName + ' ' +lastName;
+        setUserName(userName);
+        setUserRole(userRole);
+      }
+    }
+    
+    
+
+    
+  },[]);
+
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
@@ -85,9 +114,9 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Thomas Anree
+            {userName}
           </span>
-          <span className="block text-xs">UX Designer</span>
+          <span className="block text-xs">{userRole}</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
