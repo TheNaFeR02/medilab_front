@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import Logo from '../images/logo/logo.svg';
 import SidebarLinkGroup from './SidebarLinkGroup';
-import MedilabLogo from '../images/logo/MEDILAB-IPS-S.A.S_Logo.png';
+import MedilabLogo from '../images/logo/medilab-logo.svg';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -63,10 +63,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
+      <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5 ">
         <NavLink to="/">
-          <img src={Logo} alt="Logo" />
-          {/* <img src={MedilabLogo} alt="Logo"/> */}
+          {/* <img src={Logo} alt="Logo" /> */}
+          <img src={MedilabLogo} className='text-white' alt="Logo"/>
         </NavLink>
 
         <button

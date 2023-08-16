@@ -3,14 +3,54 @@ import Breadcrumb from "../../components/Breadcrumb";
 import DefaultLayout from "../../layout/DefaultLayout";
 import FormElements from "../Form/FormElements";
 import React, { useState, useEffect, useRef } from "react";
+
+
+
+import SignatureCanvas from 'react-signature-canvas';
+import { IoCamera } from 'react-icons/io5';
+import { MdOutlineCamera } from 'react-icons/md';
+import { PiSignatureBold } from 'react-icons/pi';
+import { HiPlusCircle } from 'react-icons/hi';
+import { GrFormNextLink } from 'react-icons/gr';
+import { MdOutlineNavigateNext } from 'react-icons/md';
+// Opciones de Dropdown.
 import departamentos_ciudades from "../../pages/Receptions/JSON/departamentos_ciudades.json";
 import eps_list from "../../pages/Receptions/JSON/EPS.json";
 import pension_fund from "../../pages/Receptions/JSON/pension_fund.json";
 import arl from "../../pages/Receptions/JSON/arl.json";
-import SignatureCanvas from 'react-signature-canvas';
-import {IoCamera} from 'react-icons/io5';
-import {MdOutlineCamera} from 'react-icons/md';
-import {PiSignatureBold} from 'react-icons/pi';
+import estratos from "../../pages/Receptions/JSON/estratos.json";
+import zonas from "../../pages/Receptions/JSON/zona.json";
+import escolaridades from "../../pages/Receptions/JSON/escolaridades.json";
+import estados_civiles from "../../pages/Receptions/JSON/estados_civiles.json";
+import grupos_sanguineos from "../../pages/Receptions/JSON/grupos_sanguineos.json";
+import documentos_de_identidad from "../../pages/Receptions/JSON/documentos_de_identidad.json";
+import generos from "../../pages/Receptions/JSON/generos.json";
+import ocupaciones from "../../pages/Receptions/JSON/ocupaciones.json";
+import tipos_de_evaluacion from "../../pages/Receptions/JSON/tipos_de_evaluacion.json";
+import ciudades_de_atencion from "../../pages/Receptions/JSON/ciudades_de_atencion.json";
+import cargos from "../../pages/Receptions/JSON/cargos.json";
+
+
+interface MissionCompany {
+    id: number;
+    name: string;
+}
+
+interface Company {
+    address: string;
+    city: string;
+    department: string;
+    economy_activity: string;
+    email: string;
+    id: number;
+    name: string;
+    nit: string;
+    observations: string;
+    phone: string;
+    short_name: string;
+    mission_companies: MissionCompany[];
+}
+
 
 
 
@@ -19,39 +59,44 @@ const CreateReception = () => {
     const pageName = "Nueva Recepción";
     const newReception = "+ Nueva Recepción";
     const [activeTab, setActiveTab] = useState('patient');
-    const [documentType, setDocumentType] = useState('');
-    const [documentTypeDropdown, setDocumentTypeDropdown] = useState('inactive');
-    const [sex, setSex] = useState('');
-    const [sexDropdown, setSexDropdown] = useState('inactive');
-    const [maritalStatus, setMaritalStatus] = useState('');
-    const [maritalStatusDropdown, setMaritalStatusDropdown] = useState('inactive');
-    const [bloodGroup, setBloodGroup] = useState('');
-    const [bloodGroupDropdown, setBloodGroupDropdown] = useState('inactive');
 
+    // Opciones de información del paciente.
     const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [selectedStratum, setSelectedStratum] = useState('');
+    const [selectedZone, setSelectedZone] = useState('');
+    const [selectedScholarshipLevel, setScholarshipLevel] = useState('');
+    const [selectedMaritalStatus, setMaritalStatus] = useState('');
+    const [selectedBloodType, setBloodType] = useState('');
+    const [selectedDocumentType, setDocumentType] = useState('');
+    const [selectedGender, setGender] = useState('');
+    const [job, setJob] = useState('');
+    const [isCustomJob, setIsCustomJob] = useState<boolean>(false);
+    const [medicalInsurance, setMedicalInsurance] = useState('');
+    const [isCustomMedicalIns, setIsCustomMedicalIns] = useState<boolean>(false);
+    const [pensionFund, setPensionFund] = useState<string>('');
+    const [isCustomPensionFund, setIsCustomPensionFund] = useState<boolean>(false);
+    const [ARL, setARL] = useState<string>('');
+    const [isCustomARL, setIsCustomARL] = useState<boolean>(false);
+
+    //opciones de información de la recepción.
+    const [selectedEvaluationType, setEvaluationType] = useState('');
+    const [selectedAppointmentCity, setAppointmentCity] = useState('');
+    const [isCustomSection, setIsCustomSection] = useState(false);
+    const [section, setSection] = useState('');
+
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [selectedCompany, setSelectedCompany] = useState('');
+    const [selectedMissionCompany, setSelectedMissionCompany] = useState('');
+    const [missionCompanies, setMissionCompanies] = useState<MissionCompany[]>([]);
+
+
     // const dpt_ciud = JSON.stringify(departamentos_ciudades);
     // console.log(dpt_ciud);
 
     const [selectedCity, setSelectedCity] = useState('');
     const [cities, setCities] = useState<string[]>([]);
 
-    const [estrato, setEstrato] = useState('');
-    const [estratoDropdown, setEstratoDropdown] = useState('inactive');
 
-    const [zona, setZona] = useState('');
-    const [zonaDropdown, setZonaDropdown] = useState('inactive');
-
-    const [escolaridad, setEscolaridad] = useState('');
-    const [escolaridadDropdown, setEscolaridadDropdown] = useState(false);
-
-    const [medicalInsurance, setMedicalInsurance] = useState('');
-    const [isCustomMedicalIns, setIsCustomMedicalIns] = useState<boolean>(false);
-
-    const [pensionFund, setPensionFund] = useState<string>('');
-    const [isCustomPensionFund, setIsCustomPensionFund] = useState<boolean>(false);
-
-    const [ARL, setARL] = useState<string>('');
-    const [isCustomARL, setIsCustomARL] = useState<boolean>(false);
 
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -105,23 +150,56 @@ const CreateReception = () => {
         }
     };
 
+    const newSignature = () => {
+        if (!sigCanvasRef.current?.isEmpty()) {
+            sigCanvasRef.current?.clear(); // Clear the signature board
+        }
+    }
 
     const saveSignature = () => {
-        if (sigCanvasRef.current?.isEmpty()){
+        if (sigCanvasRef.current?.isEmpty()) {
             alert('Firma vacía. Por favor, firma antes de guardar.');
         } else {
             const signatureData = sigCanvasRef.current?.toDataURL();
             setSignature(signatureData);
+            alert('Firma Guardada.');
         }
     };
 
 
+    useEffect(() => {
+        // Fetch the CSRF token and store it in state
+        fetch('http://127.0.0.1:8000/company/Company/', {
+            method: 'GET',
+            credentials: 'include',
+        }).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => {
+                    setCompanies(data);
+                    // const allMissionCompanies = data.reduce((acc: MissionCompany[], company: Company) => {
+                    //     return [...acc, ...company.mission_companies];
+                    // }, []);
+                    // console.log(allMissionCompanies);
+
+                    // setMissionCompanies(allMissionCompanies);
+                });
+            }
+        }).catch((error) => {
+            console.error('Error fetching data:', error);
+        });
+    }, []);
 
 
-    const escolaridadOptions = [
-        'Analfabeta', 'Primaria', 'Secundaria', 'Secundaria incompleta',
-        'Técnico', 'Tecnólogo', 'Pregrado', 'Especialista', 'Maestría', 'Doctorado'
-    ];
+    useEffect(() => {
+        const company = companies.find(company => company.name === selectedCompany);
+        if (company) {
+            setMissionCompanies(company.mission_companies);
+        } else {
+            setMissionCompanies([]);
+        }
+    }, [selectedCompany]);
+
+
 
     // update city dropdown whenever the department changes
     useEffect(() => {
@@ -181,11 +259,10 @@ const CreateReception = () => {
                         </h3>
                     </div>
 
-
                     <div className="flex flex-wrap pr-2 pl-5 pt-5">
 
                         {/* <!-- Información del Paciente Start --> */}
-                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5">
+                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5 w-full">
                             <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Información de Identificación</legend>
                             <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
 
@@ -199,8 +276,8 @@ const CreateReception = () => {
                                     </div>
 
                                     <div className="camera-options inline-flex">
-                                        <div onClick={startCamera} className="start-camera pt-3  w-10 h-10 flex justify-center items-center"><IoCamera className="text-4xl"/></div>
-                                        <div onClick={capturePhoto} className="capture-photo pt-3 w-10 h-10 flex justify-center items-center"><MdOutlineCamera className="text-3xl"/></div>
+                                        <div onClick={startCamera} className="start-camera pt-3  w-10 h-10 flex justify-center items-center"><IoCamera className="text-4xl" /></div>
+                                        <div onClick={capturePhoto} className="capture-photo pt-3 w-10 h-10 flex justify-center items-center"><MdOutlineCamera className="text-3xl" /></div>
                                     </div>
 
 
@@ -215,13 +292,12 @@ const CreateReception = () => {
                                         />
                                     </div>
                                     <div className="absolute signature-options inline-flex">
-                                        <div onClick={saveSignature} className="start-signature pt-3 w-10 h-10 flex justify-center items-center"><PiSignatureBold className="text-4xl"/></div>
+                                        <div onClick={newSignature} className="new-signature pt-3 w-10 h-10 flex justify-center items-center"><HiPlusCircle className="text-4xl" /></div>
+                                        <div onClick={saveSignature} className="start-signature pt-3 w-10 h-10 flex justify-center items-center"><PiSignatureBold className="text-4xl" /></div>
                                     </div>
                                 </div>
 
                                 <div className="linebreak w-full"></div>
-
-
 
                                 <div className="linebreak w-full"></div>
 
@@ -256,35 +332,18 @@ const CreateReception = () => {
                                         Tipo de documento
                                     </label>
                                     <div className="h-13">
-                                        <button onClick={() => documentTypeDropdown === 'inactive' ? setDocumentTypeDropdown('active') : setDocumentTypeDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="border-solid border-[1.5px]  dark:border-form-strokedark border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800" type="button">
-
+                                        <select
+                                            value={selectedDocumentType}
+                                            onChange={(e) => setDocumentType(e.target.value)}
+                                            className="w-60 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Tipo de Documento</option>
                                             {
-                                                documentType === '' ? 'Tipo de Documento' : documentType
+                                                documentos_de_identidad.map((doc, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={doc.documento}>{doc.documento}</option>
+                                                ))
                                             }
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
-                                        {/* <!-- Dropdown menu --> */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${documentTypeDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                                                    <li>
-                                                        <a href="#" onClick={() => { setDocumentTypeDropdown('inactive'); setDocumentType('Cédula'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>Cédula</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setDocumentTypeDropdown('inactive'); setDocumentType('Cédula de Extranjería'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">Cédula de Extranjería</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setDocumentTypeDropdown('inactive'); setDocumentType('Pasaporte'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Pasaporte</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setDocumentTypeDropdown('inactive'); setDocumentType('Permiso de Trabajo'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Permiso de Trabajo</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setDocumentTypeDropdown('inactive'); setDocumentType('Otro'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Otro</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -295,7 +354,7 @@ const CreateReception = () => {
                                     <input
                                         type="text"
                                         placeholder="Número de Documento"
-                                        className="w-100  rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                        className="w-80  rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                                     />
                                 </div>
 
@@ -304,29 +363,18 @@ const CreateReception = () => {
                                         Género
                                     </label>
                                     <div className="h-13">
-                                        <button onClick={() => sexDropdown === 'inactive' ? setSexDropdown('active') : setSexDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="estraasdasdasdborder-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800" type="button">
-
+                                        <select
+                                            value={selectedGender}
+                                            onChange={(e) => setGender(e.target.value)}
+                                            className="w-50 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Género</option>
                                             {
-                                                sex === '' ? 'No Identificado' : sex
+                                                generos.map((gender, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={gender.genero}>{gender.genero}</option>
+                                                ))
                                             }
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
-                                        {/* <!-- Dropdown menu Genéro --> */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${sexDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                                                    <li>
-                                                        <a href="#" onClick={() => { setSexDropdown('inactive'); setSex('Masculino'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>Masculino</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setSexDropdown('inactive'); setSex('Femenino'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">Femenino</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setSexDropdown('inactive'); setSex('No Identificado'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">No Identificado</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -380,9 +428,6 @@ const CreateReception = () => {
                                 </div>
                             </div>
                         </fieldset>
-
-
-
                         {/* <!-- Información del Paciente End --> */}
 
 
@@ -402,10 +447,10 @@ const CreateReception = () => {
                                             onChange={(e) => setSelectedDepartment(e.target.value)}
                                             className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                         >
-                                            <option value="">Seleccione un Departamento</option>
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Departamento</option>
                                             {
                                                 departamentos_ciudades.map((dept, index) => (
-                                                    <option key={index} value={dept.departamento}>{dept.departamento}</option>
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={dept.departamento}>{dept.departamento}</option>
                                                 ))
                                             }
                                         </select>
@@ -422,10 +467,10 @@ const CreateReception = () => {
                                             onChange={(e) => setSelectedCity(e.target.value)}
                                             className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                         >
-                                            <option value="">Seleccione una Ciudad</option>
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione una Ciudad</option>
                                             {
                                                 cities.map((city, index) => (
-                                                    <option key={index} value={city}>{city}</option>
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={city}>{city}</option>
                                                 ))
                                             }
                                         </select>
@@ -439,36 +484,18 @@ const CreateReception = () => {
                                         Estrato
                                     </label>
                                     <div className="h-13">
-                                        <button
-                                            onClick={() => estratoDropdown === 'inactive' ? setEstratoDropdown('active') : setEstratoDropdown('inactive')}
-                                            id="dropdownDefaultButton"
-                                            data-dropdown-toggle="dropdown"
-                                            className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm text-center inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800"
-                                            type="button"
+                                        <select
+                                            value={selectedStratum}
+                                            onChange={(e) => setSelectedStratum(e.target.value)}
+                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                         >
-                                            {estrato === '' ? 'No Identificado' : estrato}
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </button>
-                                        {/* Dropdown menu Estrato */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${estratoDropdown === 'active' ? 'dark:bg-graydark z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                                                    {[1, 2, 3, 4, 5, 6].map((value) => (
-                                                        <li key={value}>
-                                                            <a
-                                                                href="#"
-                                                                onClick={() => { setEstratoDropdown('inactive'); setEstrato(value.toString()); }}
-                                                                className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white"
-                                                            >
-                                                                {value}
-                                                            </a>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Estrato</option>
+                                            {
+                                                estratos.map((stratum, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={stratum.estrato}>{stratum.estrato}</option>
+                                                ))
+                                            }
+                                        </select>
                                     </div>
                                 </div>
 
@@ -477,36 +504,18 @@ const CreateReception = () => {
                                         Zona
                                     </label>
                                     <div className="h-13">
-                                        <button
-                                            onClick={() => zonaDropdown === 'inactive' ? setZonaDropdown('active') : setZonaDropdown('inactive')}
-                                            id="dropdownDefaultButton"
-                                            data-dropdown-toggle="dropdown"
-                                            className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm text-center inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800"
-                                            type="button"
+                                        <select
+                                            value={selectedZone}
+                                            onChange={(e) => setSelectedZone(e.target.value)}
+                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                         >
-                                            {zona === '' ? 'No Identificado' : zona}
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </button>
-                                        {/* Dropdown menu Zona */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${zonaDropdown === 'active' ? 'dark:bg-graydark z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                                                    {['Rural', 'Urbana'].map((value) => (
-                                                        <li key={value}>
-                                                            <a
-                                                                href="#"
-                                                                onClick={() => { setZonaDropdown('inactive'); setZona(value); }}
-                                                                className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white"
-                                                            >
-                                                                {value}
-                                                            </a>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione una Zona</option>
+                                            {
+                                                zonas.map((zone, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={zone.zona}>{zone.zona}</option>
+                                                ))
+                                            }
+                                        </select>
                                     </div>
                                 </div>
 
@@ -537,36 +546,18 @@ const CreateReception = () => {
                                         Escolaridad
                                     </label>
                                     <div className="h-13">
-                                        <button
-                                            onClick={() => setEscolaridadDropdown(prev => !prev)}
-                                            id="dropdownEscolaridadButton"
-                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm text-center inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800"
-                                            type="button"
+                                        <select
+                                            value={selectedScholarshipLevel} // Escolaridad
+                                            onChange={(e) => setScholarshipLevel(e.target.value)}
+                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                         >
-                                            {escolaridad === '' ? 'Escolaridad' : escolaridad}
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </button>
-                                        {/* Dropdown menu Escolaridad */}
-                                        <div className="absolute">
-                                            <div id="dropdownEscolaridad" className={` ${escolaridadDropdown ? 'dark:bg-graydark z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownEscolaridadButton">
-                                                    {escolaridadOptions.map((option, index) => (
-                                                        <li key={index}>
-                                                            <a
-                                                                href="#"
-                                                                onClick={() => { setEscolaridadDropdown(false); setEscolaridad(option); }}
-                                                                className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}
-                                                            >
-                                                                {option}
-                                                            </a>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione una Escolaridad</option>
+                                            {
+                                                escolaridades.map((escolaridad, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={escolaridad.escolaridad}>{escolaridad.escolaridad}</option>
+                                                ))
+                                            }
+                                        </select>
                                     </div>
                                 </div>
 
@@ -577,35 +568,18 @@ const CreateReception = () => {
                                         Estado Civil
                                     </label>
                                     <div className="h-13">
-                                        <button onClick={() => maritalStatusDropdown === 'inactive' ? setMaritalStatusDropdown('active') : setMaritalStatusDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="w-100 border-solid border-[1.5px]  border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 dark:border-form-strokedark dark:bg-form-input" type="button">
-
+                                        <select
+                                            value={selectedMaritalStatus} // Escolaridad
+                                            onChange={(e) => setMaritalStatus(e.target.value)}
+                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Estado Civil</option>
                                             {
-                                                maritalStatus === '' ? 'Estado Civil' : maritalStatus
+                                                estados_civiles.map((estado_civil, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={estado_civil.estado_civil}>{estado_civil.estado_civil}</option>
+                                                ))
                                             }
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
-                                        {/* <!-- Dropdown menu --> */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${maritalStatusDropdown === 'active' ? 'dark:bg-graydark  z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Soltero/a'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>Soltero/a</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Casado/a'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">Casado/a</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Divorciado/a'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Divorciado/a</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Unión Libre'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Unión Libre</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setMaritalStatusDropdown('inactive'); setMaritalStatus('Viudo'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">Viudo</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -614,44 +588,18 @@ const CreateReception = () => {
                                         Grupo Sanguíneo
                                     </label>
                                     <div className="h-13">
-                                        <button onClick={() => bloodGroupDropdown === 'inactive' ? setBloodGroupDropdown('active') : setBloodGroupDropdown('inactive')} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className=" dark:border-form-strokedark w-100 border-solid border-[1.5px]  border-stroke rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12  text-sm text-center inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 " type="button">
-
+                                        <select
+                                            value={selectedBloodType} // Escolaridad
+                                            onChange={(e) => setBloodType(e.target.value)}
+                                            className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Grupo Sanguíneo</option>
                                             {
-                                                bloodGroup === '' ? 'Grupo Sanguíneo' : bloodGroup
+                                                grupos_sanguineos.map((blood_type, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={blood_type.grupo_sanguineo}>{blood_type.grupo_sanguineo}</option>
+                                                ))
                                             }
-
-                                            <svg className="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></button>
-                                        {/* <!-- Dropdown menu --> */}
-                                        <div className="absolute">
-                                            <div id="dropdown" className={` ${bloodGroupDropdown === 'active' ? 'dark:bg-graydark z-20 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700' : 'hidden'}`}>
-                                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200 " aria-labelledby="dropdownDefaultButton">
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('A+'); }} className={`block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white`}>A+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('A-'); }} className="hover:bg-stroke block px-4 py-2  dark:hover:bg-primary dark:hover:text-white">A-</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('B+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">B+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('B-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">B-</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('AB+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">AB+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('AB-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">AB-</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('O+'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">O+</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="#" onClick={() => { setBloodGroupDropdown('inactive'); setBloodGroup('O-'); }} className="block px-4 py-2 hover:bg-stroke dark:hover:bg-primary dark:hover:text-white">O-</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -675,10 +623,10 @@ const CreateReception = () => {
                                                 }}
                                                 className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                             >
-                                                <option value="">Seleccione una EPS</option>
+                                                <option className="bg-white dark:bg-strokedark" value="">Seleccione una EPS</option>
                                                 {
                                                     eps_list.map((eps, index) => (
-                                                        <option key={index} value={eps.name}>{eps.name}</option>
+                                                        <option className="bg-white dark:bg-strokedark" key={index} value={eps.name}>{eps.name}</option>
                                                     ))
 
                                                 }
@@ -719,10 +667,10 @@ const CreateReception = () => {
                                                 }}
                                                 className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                             >
-                                                <option value="">Seleccione un fondo de pensiones</option>
+                                                <option className="bg-white dark:bg-strokedark" value="">Seleccione un fondo de pensiones</option>
                                                 {
                                                     pension_fund.map((pf, index) => (
-                                                        <option key={index} value={pf.name}>{pf.name}</option>
+                                                        <option className="bg-white dark:bg-strokedark" key={index} value={pf.name}>{pf.name}</option>
                                                     ))
 
                                                 }
@@ -764,10 +712,10 @@ const CreateReception = () => {
                                                 }}
                                                 className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
                                             >
-                                                <option value="">Seleccione una ARL</option>
+                                                <option className="bg-white dark:bg-strokedark" value="">Seleccione una ARL</option>
                                                 {
                                                     arl.map((arl, index) => (
-                                                        <option key={index} value={arl.name}>{arl.name}</option>
+                                                        <option className="bg-white dark:bg-strokedark" key={index} value={arl.name}>{arl.name}</option>
                                                     ))
 
                                                 }
@@ -788,6 +736,94 @@ const CreateReception = () => {
 
                                     </div>
                                 </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Ocupación
+                                    </label>
+                                    <div className="h-13">
+                                        {!isCustomJob ? (
+                                            <select
+                                                value={job}
+                                                onChange={(e) => {
+                                                    if (e.target.value === 'Otro (Escribir uno nuevo)') {
+                                                        setIsCustomJob(true);
+                                                        setJob('');
+                                                    } else {
+                                                        setJob(e.target.value);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                            >
+                                                <option className="bg-white dark:bg-strokedark" value="">Seleccione una Ocupación</option>
+                                                {
+                                                    ocupaciones.map((job, index) => (
+                                                        <option className="bg-white dark:bg-strokedark" key={index} value={job.ocupacion}>{job.ocupacion}</option>
+                                                    ))
+
+                                                }
+                                            </select>
+                                        ) : (
+                                            <input
+                                                value={job}
+                                                onChange={(e) => setJob(e.target.value)}
+                                                onBlur={() => {
+                                                    if (job === '') {
+                                                        setIsCustomJob(false);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                                placeholder="Escriba su Ocupación"
+                                            />
+                                        )}
+
+                                    </div>
+                                </div>
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Cargo
+                                    </label>
+                                    <div className="h-13">
+                                        {!isCustomSection ? (
+                                            <select
+                                                value={section}
+                                                onChange={(e) => {
+                                                    if (e.target.value === 'Otro (Escribir uno nuevo)') {
+                                                        setIsCustomSection(true);
+                                                        setSection('');
+                                                    } else {
+                                                        setSection(e.target.value);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                            >
+                                                <option className="bg-white dark:bg-strokedark" value="">Seleccione un Cargo</option>
+                                                {
+                                                    cargos.map((cargo, index) => (
+                                                        <option className="bg-white dark:bg-strokedark" key={index} value={cargo.cargo}>{cargo.cargo}</option>
+                                                    ))
+                                                }
+                                            </select>
+                                        ) : (
+                                            <input
+                                                value={section}
+                                                onChange={(e) => setSection(e.target.value)}
+                                                onBlur={() => {
+                                                    if (section === '') {
+                                                        setIsCustomSection(false);
+                                                    }
+                                                }}
+                                                className="w-100 border-solid border-[1.5px] border-stroke dark:border-form-strokedark rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm inline-flex items-center dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                                placeholder="Escriba su Cargo"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+
+
                             </div>
                         </fieldset>
                         {/* Información Personal End */}
@@ -796,10 +832,145 @@ const CreateReception = () => {
 
 
                     </div>
-                </div>}
 
-                {activeTab === 'reception' && <div>Reception Data</div>}
+                </div>}
+                {activeTab === 'reception' && <div className="rounded-2xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                    <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                        <h3 className="font-medium text-black dark:text-white">
+                            Datos de la Recepción
+                        </h3>
+                    </div>
+
+                    <div className="flex flex-wrap pr-2 pl-5 pt-5">
+
+                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5 w-full">
+                            <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Información General</legend>
+                            <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Tipo de Evaluación
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedEvaluationType}
+                                            onChange={(e) => setEvaluationType(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Tipo de Evaluación</option>
+                                            {
+                                                tipos_de_evaluacion.map((evalu, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={evalu.tipo_evaluacion}>{evalu.tipo_evaluacion}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Ciudad de Atención
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedAppointmentCity}
+                                            onChange={(e) => setAppointmentCity(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione la Ciudad de Atención</option>
+                                            {
+                                                ciudades_de_atencion.map((city, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={city.ciudad}>{city.ciudad}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <hr className="w-full pb-4 text-stroke border-opacity-60 dark:border-graydark" />
+
+                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5 w-full">
+                            <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Detalles de la Empresa</legend>
+                            <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Empresa
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedCompany}
+                                            onChange={(e) => setSelectedCompany(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione la Empresa</option>
+                                            {
+                                                companies.map((company, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={company.name}>{company.name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Empresas en Misión
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedMissionCompany}
+                                            onChange={(e) => setSelectedMissionCompany(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione la Empresa en Misión</option>
+                                            {
+                                                missionCompanies.map((companyMission, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={companyMission.name}>{companyMission.name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+
+                    </div>
+                </div>}
                 {activeTab === 'exams' && <div>Exams</div>}
+
+                {/* Next Button start */}
+                {activeTab === 'patient' &&
+                    <button
+                        onClick={() => setActiveTab('reception')}
+                        className="shadow-xl hover:bg-secondary duration-100  font-bold text-xl mr-15  px-15 py-3  md:mt-12 text-white  bg-primary rounded-lg w-100 self-end"
+                    >
+                        Datos de la Recepción
+                        <MdOutlineNavigateNext className="text-white inline-block text-4xl" />
+                    </button>}
+
+                {activeTab === 'reception' &&
+                    <button
+                        onClick={() => setActiveTab('exams')}
+                        className="shadow-xl hover:bg-secondary duration-100  font-bold text-xl mr-15  px-15 py-3  md:mt-12 text-white  bg-primary rounded-lg w-100 self-end"
+                    >
+                        Exámenes
+                        <MdOutlineNavigateNext className="text-white inline-block text-4xl" />
+                    </button>}
+
+                {activeTab === 'exams' &&
+                    <button
+                        onClick={() => setActiveTab('exams')}
+                        className="shadow-xl hover:bg-secondary duration-100  font-bold text-xl mr-15  px-15 py-3  md:mt-12 text-white  bg-primary rounded-lg w-100 self-end"
+                    >
+                        Guardar Paciente
+                        <MdOutlineNavigateNext className="text-white inline-block text-4xl" />
+                    </button>
+                }
+                {/* Next Button start */}
+
+
             </div>
 
 
@@ -808,7 +979,7 @@ const CreateReception = () => {
 
         </DefaultLayout>
     );
-                                            
+
 };
 
 export default CreateReception;

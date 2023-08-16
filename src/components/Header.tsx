@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Logo from '../images/logo/logo-icon.svg';
 import MedilabLogo from '../images/logo/MEDILAB-IPS-S.A.S_Logo.png';
+import MedilabLogoIcon from '../images/logo/logo-icon.svg';
 import DarkModeSwitcher from './DarkModeSwitcher';
 import DropdownMessage from './DropdownMessage';
 import DropdownNotification from './DropdownNotification';
@@ -58,7 +59,8 @@ const Header = (props: {
           {/* <!-- Hamburger Toggle BTN --> */}
 
           <Link className="block flex-shrink-0 lg:hidden" to="/">
-            <img src={Logo} alt="Logo" />
+            {/* <img src={Logo} alt="Logo" /> */}
+            <img src={MedilabLogoIcon} alt="Logo" />
             
           </Link>
         </div>

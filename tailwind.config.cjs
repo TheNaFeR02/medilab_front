@@ -18,7 +18,8 @@ module.exports = {
       bodydark: '#AEB7C0',
       bodydark1: '#DEE4EE',
       bodydark2: '#8A99AF',
-      primary: '#3C50E0',
+      // primary: '#3C50E0',
+      primary: '#0197AE',
       secondary: '#80CAEE',
       stroke: '#E2E8F0',
       gray: '#EFF4FB',
@@ -249,7 +250,7 @@ module.exports = {
         'spin-3': 'spin 3s linear infinite',
       },
       colors: {
-        btnPurple: '#5569ff',
+        btnPurple: '#5569ff', // para cambiar el background de un elemento por ejemplo se usaria: bg-btnPurple
         btnHoverPurple: '#4755cc',
       },
     },

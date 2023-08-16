@@ -72,10 +72,6 @@ const DropdownUser = () => {
         setUserRole(userRole);
       }
     }
-    
-    
-
-    
   },[]);
 
   // close on click outside

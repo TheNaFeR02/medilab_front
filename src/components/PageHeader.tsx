@@ -26,7 +26,7 @@ function PageHeader({ Pagename, newElement }: PageHeaderProps) {
           {newElement && (
             <button
               onClick={handleClick}
-              className="shadow-xl hover:bg-btnHoverPurple duration-100  font-bold text-xl mr-15  px-15 py-3  md:mt-12 text-white  bg-btnPurple rounded-lg inline-flex items-center"
+              className="shadow-xl hover:bg-secondary duration-100  font-bold text-xl mr-15  px-15 py-3  md:mt-12 text-white  bg-primary rounded-lg inline-flex items-center"
             >
               {newElement}
             </button>
