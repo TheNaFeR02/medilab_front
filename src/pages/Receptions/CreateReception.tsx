@@ -1135,6 +1135,7 @@ const CreateReception = () => {
                     </div>
 
                     <div className="flex flex-wrap gap-3 pr-2 pl-5 pt-5 pb-5">
+                        <PricingCard/>
                         <ExamCard name="Audiometría" />
                         <ExamCard name="Visiometría" />
                         <ExamCard name="Optometría" />
