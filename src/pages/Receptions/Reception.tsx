@@ -7,7 +7,7 @@ const Reception = () => {
     const pageName = "Recepción";
     const newReception = "+ Nueva Recepción";
     return (
-        <DefaultLayout pageName={pageName} newReception={newReception}>
+        <DefaultLayout newReception={newReception}>
             <Breadcrumb pageName={pageName} />
             <div className="flex flex-col gap-10">
                 <TableOne />

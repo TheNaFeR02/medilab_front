@@ -29,11 +29,15 @@ import ocupaciones from "../../pages/Receptions/JSON/ocupaciones.json";
 import tipos_de_evaluacion from "../../pages/Receptions/JSON/tipos_de_evaluacion.json";
 import ciudades_de_atencion from "../../pages/Receptions/JSON/ciudades_de_atencion.json";
 import cargos from "../../pages/Receptions/JSON/cargos.json";
+import metodos_pago from "../../pages/Receptions/JSON/metodos_pago.json";
+import PricingCard from "./PricingCard";
+import ExamCard from "./ExamCard";
 
 
 interface MissionCompany {
     id: number;
     name: string;
+    tariffs: Tariff[];
 }
 
 interface Company {
@@ -49,6 +53,24 @@ interface Company {
     phone: string;
     short_name: string;
     mission_companies: MissionCompany[];
+    tariffs: Tariff[];
+}
+
+interface Package {
+    id: number;
+    name: string;
+    price: number;
+}
+
+interface Tariff {
+    id: number;
+    name: string;
+    active: boolean;
+}
+
+interface Doctor {
+    first_name: string;
+    last_name: string;
 }
 
 
@@ -88,8 +110,14 @@ const CreateReception = () => {
     const [selectedCompany, setSelectedCompany] = useState('');
     const [selectedMissionCompany, setSelectedMissionCompany] = useState('');
     const [missionCompanies, setMissionCompanies] = useState<MissionCompany[]>([]);
+    const [packages, setPackages] = useState<Package[]>([]);
+    const [selectedPackage, setSelectedPackage] = useState(''); // if set to <string> the value={} gives an error.
+    const [tariffs, setTariffs] = useState<Tariff[]>([]);
+    const [selectedTariff, setSelectedTariff] = useState('');
 
-
+    const [selectedPaymentType, setSelectedPaymentType] = useState('');
+    const [selectedDoctor, setSelectedDoctor] = useState('');
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
     // const dpt_ciud = JSON.stringify(departamentos_ciudades);
     // console.log(dpt_ciud);
 
@@ -166,7 +194,7 @@ const CreateReception = () => {
         }
     };
 
-
+    // Trae toda la lista de Empresas.
     useEffect(() => {
         // Fetch the CSRF token and store it in state
         fetch('http://127.0.0.1:8000/company/Company/', {
@@ -185,11 +213,11 @@ const CreateReception = () => {
                 });
             }
         }).catch((error) => {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching Company List data:', error);
         });
     }, []);
 
-
+    // Muestra las Empresas en Misión de la Empresa Seleccionada.
     useEffect(() => {
         const company = companies.find(company => company.name === selectedCompany);
         if (company) {
@@ -199,7 +227,62 @@ const CreateReception = () => {
         }
     }, [selectedCompany]);
 
+    useEffect(() => {
+        fetch('http://127.0.0.1:8000/exam/Package/', {
+            method: 'GET',
+            credentials: 'include',
+        }).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => {
+                    setPackages(data);
+                });
+            }
+        }).catch((error) => {
+            console.error('Error fetching Package List data:', error);
+        })
+    }, []);
 
+
+    //
+    useEffect(() => {
+        console.log(selectedMissionCompany);
+
+        if (!selectedMissionCompany) {
+            const company = companies.find(company => company.name === selectedCompany);
+            if (company) {
+                setTariffs(company.tariffs);
+            } else {
+                setTariffs([]);
+            }
+        } else {
+            console.log("ENTROOO COSECHAS");
+
+            const missionCompany = missionCompanies.find(missionCompany => missionCompany.name === selectedMissionCompany);
+            console.log(missionCompany);
+
+            if (missionCompany) {
+                setTariffs(missionCompany.tariffs);
+            } else {
+                setTariffs([]);
+            }
+        }
+    }, [selectedCompany, selectedMissionCompany]);
+
+    //
+    useEffect(() => {
+        fetch('http://127.0.0.1:8000/auth/doctor-name-list/', {
+            method: 'GET',
+            credentials: 'include',
+        }).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => {
+                    setDoctors(data);
+                });
+            }
+        }).catch((error) => {
+            console.error('Error fetching Doctor Name List data:', error);
+        })
+    }, []);
 
     // update city dropdown whenever the department changes
     useEffect(() => {
@@ -211,8 +294,10 @@ const CreateReception = () => {
         }
     }, [selectedDepartment]);
 
+    // Fetch Medicos de la API
+    useEffect(() => {
 
-
+    }, []);
 
     return (
         <DefaultLayout>
@@ -301,7 +386,7 @@ const CreateReception = () => {
 
                                 <div className="linebreak w-full"></div>
 
-                                <div className="relative ">
+                                <div className="">
                                     <label className="mb-3 block text-black dark:text-white">
                                         Nombres
                                     </label>
@@ -885,6 +970,28 @@ const CreateReception = () => {
                                         </select>
                                     </div>
                                 </div>
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Médico
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedDoctor}
+                                            onChange={(e) => setSelectedDoctor(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione el Médico</option>
+                                            {
+                                                doctors.map((doctor, index) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={doctor.first_name + doctor.last_name}>{"Dr. " + doctor.first_name + " " + doctor.last_name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </fieldset>
 
@@ -935,10 +1042,140 @@ const CreateReception = () => {
                             </div>
                         </fieldset>
 
+                        <hr className="w-full pb-4 text-stroke border-opacity-60 dark:border-graydark" />
+
+                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5 w-full">
+                            <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Detalles de Pago</legend>
+                            <div className="flex flex-wrap gap-5.5 pb-5 pl-2.5">
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Paquetes
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedPackage}
+                                            onChange={(e) => setSelectedPackage(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione el Paquete</option>
+                                            {
+                                                packages.map((packa: Package, index: number) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={packa.name}>{packa.name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Tarifarios
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedTariff}
+                                            onChange={(e) => setSelectedTariff(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione el Tarifario</option>
+                                            {
+                                                tariffs.map((tariff: Tariff, index: number) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={tariff.name}>{tariff.name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="linebreak w-full"></div>
+
+                                <div className="h-21">
+                                    <label className="mb-3 block text-black dark:text-white">
+                                        Método de Pago
+                                    </label>
+                                    <div className="h-13">
+                                        <select
+                                            value={selectedPaymentType}
+                                            onChange={(e) => setSelectedPaymentType(e.target.value)}
+                                            className="w-80 border-solid border-[1.5px]  border-stroke dark:border-form-strokedark  rounded-lg text-darkgray hover:bg-gray focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium px-5 py-3 h-12 text-sm  inline-flex items-center  dark:hover:bg-primary dark:focus:ring-blue-800 bg-transparent"
+                                        >
+                                            <option className="bg-white dark:bg-strokedark" value="">Seleccione un Método de Pago </option>
+                                            {
+                                                metodos_pago.map((pago, index: number) => (
+                                                    <option className="bg-white dark:bg-strokedark" key={index} value={pago.metodo_pago}>{pago.metodo_pago}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <hr className="w-full pb-4 text-stroke border-opacity-60 dark:border-graydark" />
+
+                        <fieldset className="border border-solid border-stroke border-opacity-60 dark:border-graydark rounded-lg p-3 mb-5 w-full">
+                            <legend className="text-sm opacity-60 dark:text-gray dark:opacity-40">Observaciones</legend>
+                            <div className="">
+                                <label className="mb-3 block text-black dark:text-white">
+                                    Comentarios
+                                </label>
+                                <textarea
+                                    placeholder="Ingresa un comentario"
+                                    className="w-1/3 h-50 resize-none  rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                />
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>}
+                {activeTab === 'exams' && <div className="rounded-2xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                    <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                        <h3 className="font-medium text-black dark:text-white">
+                            Exámenes
+                        </h3>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 pr-2 pl-5 pt-5 pb-5">
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Visiometría" />
+                        <ExamCard name="Optometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+                        <ExamCard name="Audiometría" />
+
+                        {/* <div className="">
+                            <PricingCard />
+                        </div> */}
+
+
 
                     </div>
                 </div>}
-                {activeTab === 'exams' && <div>Exams</div>}
 
                 {/* Next Button start */}
                 {activeTab === 'patient' &&
